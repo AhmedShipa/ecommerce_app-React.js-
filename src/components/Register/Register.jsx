@@ -1,11 +1,54 @@
-import React from "react";
+import React, { useState } from "react";
 import style from "./Register.module.css";
 import { useFormik } from "formik";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { UserContext } from "../../Context/UserContext";
 
 export default function Register() {
-  function handleRegister() {
-    console.log("register");
+  const navigate = useNavigate();
+  const [userLogin, setuserLogin] = useState(UserContext);
+  const [ApiError, setApiError] = useState("");
+  const [isLoading, setisLoading] = useState(false);
+  function handleRegister(values) {
+    setisLoading(true);
+    axios
+      .post("https://ecommerce.routemisr.com/api/v1/auth/signup", values)
+      .then((res) => {
+        setisLoading(false);
+        if (res.data.message == "success") {
+          localStorage.setItem("userToken", res.data.token);
+          setuserLogin(res.data.token);
+          navigate("/");
+        }
+      })
+      .catch((res) => {
+        setisLoading(false);
+        setApiError(res.response.data.message);
+      });
   }
+
+  let validationSchema = Yup.object().shape({
+    name: Yup.string()
+      .min(3, "min length is 3")
+      .max(10, "max length is 10")
+      .required("name is required"),
+    email: Yup.string().email("invalid email").required("email is required"),
+    phone: Yup.string()
+      .matches(/^01[0125][0-9]{8}$/, "invalid phone number")
+      .required("phone is required"),
+    password: Yup.string()
+      .matches(
+        /^[A-Za-z0-9]{6,10}$/,
+        "password should be between 6 and 10 characters"
+      )
+      .required("[password is required"),
+    rePassword: Yup.string()
+      .oneOf([Yup.ref("password")], "password and rePassword is not the same")
+      .required("rePassword is required"),
+  });
+
   let formik = useFormik({
     initialValues: {
       name: "",
@@ -14,12 +57,18 @@ export default function Register() {
       password: "",
       rePassword: "",
     },
+    validationSchema,
     onSubmit: handleRegister,
   });
 
   return (
     <>
       <div className="my-8">
+        {ApiError ? (
+          <div className="w-1/2 mx-auto bg-red-600 text-white font-bold rounded-lg p-3">
+            {ApiError}
+          </div>
+        ) : null}
         <h2 className="font-bold text-2xl text-emerald-600">Register Now</h2>
         <form onSubmit={formik.handleSubmit} className="max-w-lg mx-auto">
           <div className="relative z-0 w-full mb-5 group">
@@ -39,9 +88,9 @@ export default function Register() {
             >
               Enter your name
             </label>
-          </div>
-          <div className="p-4 mb-4 text-sm text-red-600" role="alert">
-            <span>test</span>
+            {formik.errors.name && formik.touched.name ? (
+              <span className="text-red-500">{formik.errors.name}</span>
+            ) : null}
           </div>
           <div className="relative z-0 w-full mb-5 group">
             <input
@@ -60,6 +109,9 @@ export default function Register() {
             >
               Enter your Email
             </label>
+            {formik.errors.email && formik.touched.email ? (
+              <span className="text-red-500">{formik.errors.email}</span>
+            ) : null}
           </div>
           <div className="relative z-0 w-full mb-5 group">
             <input
@@ -78,6 +130,9 @@ export default function Register() {
             >
               Enter your phone
             </label>
+            {formik.errors.phone && formik.touched.phone ? (
+              <span className="text-red-500">{formik.errors.phone}</span>
+            ) : null}
           </div>
           <div className="relative z-0 w-full mb-5 group">
             <input
@@ -96,6 +151,9 @@ export default function Register() {
             >
               Enter your password
             </label>
+            {formik.errors.password && formik.touched.password ? (
+              <span className="text-red-500">{formik.errors.password}</span>
+            ) : null}
           </div>
           <div className="relative z-0 w-full mb-5 group">
             <input
@@ -114,13 +172,27 @@ export default function Register() {
             >
               Enter your RePassword
             </label>
+            {formik.errors.rePassword && formik.touched.rePassword ? (
+              <span className="text-red-500">{formik.errors.rePassword}</span>
+            ) : null}
           </div>
-          <button
-            type="submit"
-            className="text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-4 focus:outline-none focus:ring-emerald-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800"
-          >
-            Submit
-          </button>
+          <div className="flex gap-4 items-center">
+            <button
+              type="submit"
+              className="text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-4 focus:outline-none focus:ring-emerald-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800"
+            >
+              {isLoading ? (
+                <i className="fas fa-spinner fa-spin"></i>
+              ) : (
+                "Register"
+              )}
+            </button>
+            <Link to={"/login"}>
+              <span className="text-blue-500 underline">
+                Do you have an account ? login now
+              </span>
+            </Link>
+          </div>
         </form>
       </div>
     </>

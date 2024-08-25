@@ -8,7 +8,7 @@ export default function Layout() {
   return (
     <>
       <Navbar />
-      <div className="py-20 container text-center">
+      <div className="container w-[80%] mx-auto py-20 ">
         <Outlet />
       </div>
       <Footer />

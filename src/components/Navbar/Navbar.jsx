@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useContext } from "react";
 import style from "./Navbar.module.css";
 import logo from "../../assets/freshcart-logo.svg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { UserContext } from "../../Context/UserContext";
 
 export default function Navbar() {
+  let { userLogin, setuserLogin } = useContext(UserContext);
+  let navigate = useNavigate();
+
+  function signOut() {
+    localStorage.removeItem("userToken");
+    setuserLogin(null);
+    navigate("/login");
+  }
+
   return (
     <>
       <div>
@@ -21,23 +31,27 @@ export default function Navbar() {
                   alt="Flowbite Logo"
                 />
               </Link>
-              <ul className="flex gap-4">
-                <li>
-                  <Link to="">Home</Link>
-                </li>
-                <li>
-                  <Link to="cart">Cart</Link>
-                </li>
-                <li>
-                  <Link to="products">Products</Link>
-                </li>
-                <li>
-                  <Link to="categories">Categories</Link>
-                </li>
-                <li>
-                  <Link to="brands">Brands</Link>
-                </li>
-              </ul>
+              {userLogin !== null ? (
+                <>
+                  <ul className="flex gap-4">
+                    <li>
+                      <Link to="">Home</Link>
+                    </li>
+                    <li>
+                      <Link to="cart">Cart</Link>
+                    </li>
+                    <li>
+                      <Link to="products">Products</Link>
+                    </li>
+                    <li>
+                      <Link to="categories">Categories</Link>
+                    </li>
+                    <li>
+                      <Link to="brands">Brands</Link>
+                    </li>
+                  </ul>
+                </>
+              ) : null}
             </div>
             <div className="flex items-center space-x-6 rtl:space-x-reverse">
               <div className="icons flex gap-4">
@@ -48,13 +62,20 @@ export default function Navbar() {
                 <i className="fab fa-twitter"></i>
               </div>
               <div className="links flex gap-4">
-                <Link to="login" className="text-sm ">
-                  Login
-                </Link>
-                <Link to="register" className="text-sm ">
-                  Register
-                </Link>
-                <span className="text-sm ">SignOut</span>
+                {userLogin != null ? (
+                  <span onClick={signOut} className="text-sm cursor-pointer">
+                    SignOut
+                  </span>
+                ) : (
+                  <>
+                    <Link to="login" className="text-sm ">
+                      Login
+                    </Link>
+                    <Link to="register" className="text-sm ">
+                      Register
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
